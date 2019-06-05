@@ -37,7 +37,7 @@ synchronize_pods() {
     # Get all pods with a label that are Running *and* Ready.
     # Currently, there's no way to check for this by kubectl only:
     # https://github.com/kubernetes/kubernetes/issues/49387
-    pods_ready=$(kubectl get pods --no-headers -n=$NAMESPACE -l=app=centos-stress --field-selector=status.phase=Running 2>/dev/null | wc -l)
+    pods_ready=$(kubectl get pods --no-headers -n=$NAMESPACE -l=app=http-stress --field-selector=status.phase=Running 2>/dev/null | wc -l)
 
     echo "Pods ready $pods_ready/$pods_ready_needed"
     test "${pods_ready:-0}" -eq "$pods_ready_needed" && return

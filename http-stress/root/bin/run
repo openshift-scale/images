@@ -1,0 +1,197 @@
+#!/bin/bash
+# Entrypoint script for Load Generator Container Image
+
+ProgramName=${0##*/}
+
+# Global variables
+pctl_bin=pctl
+
+fail() {
+  echo $@ >&2
+}
+
+warn() {
+  fail "$ProgramName: $@"
+}
+
+die() {
+  local err=$1
+  shift
+  fail "$ProgramName: $@"
+  exit $err
+}
+
+usage() {
+  cat <<EOF 1>&2
+Usage: $ProgramName
+EOF
+}
+
+# Wait for all the WLG pods to be in the Running state and Ready
+synchronize_pods() {
+  local connect_timeout=15		# 15 second connection timeout
+  local pods_ready
+  local pods_ready_needed=${LOAD_GENERATORS:-1}
+
+  while true ; do
+    # Get all pods with a label that are Running *and* Ready.
+    # Currently, there's no way to check for this by kubectl only:
+    # https://github.com/kubernetes/kubernetes/issues/49387
+    pods_ready=$(kubectl get pods --no-headers -n=$NAMESPACE -l=app=centos-stress --field-selector=status.phase=Running 2>/dev/null | wc -l)
+
+    echo "Pods ready $pods_ready/$pods_ready_needed"
+    test "${pods_ready:-0}" -eq "$pods_ready_needed" && return
+    sleep 5
+  done
+}
+
+# basic checks for toybox/busybox/coreutils timeout
+define_timeout_bin() {
+  test "${RUN_TIME}" || return	# timeout empty, do not define it and just return
+
+  timeout -t 0 /bin/sleep 0 >/dev/null 2>&1
+
+  case $? in
+    # we have a busybox timeout with '-t' option for number of seconds
+    0)
+      timeout="timeout -t ${RUN_TIME}"
+      ;;
+
+    # we have toybox's timeout without the '-t' option for number of seconds
+    1)
+      timeout="timeout ${RUN_TIME}"
+      ;;
+
+    # we have coreutil's timeout without the '-t' option for number of seconds
+    125)
+      timeout="timeout ${RUN_TIME}"
+      ;;
+
+    # couldn't find timeout or unknown version
+    *)
+      warn "running without timeout"
+      timeout=""
+      ;;
+  esac
+}
+
+timeout_exit_status() {
+  local err="${1:-$?}"
+
+  case $err in
+    # coreutil's return code for timeout
+    124)
+      return 0
+      ;;
+
+    # timeout also sends SIGKILL if a process fails to respond
+    137)
+      return 0
+      ;;
+
+    # busybox's return code for timeout with default signal TERM
+    143)
+      return 0
+      ;;
+
+    *)
+      return $err
+      ;;
+  esac
+}
+
+main() {
+  define_timeout_bin
+  synchronize_pods
+
+  case "${RUN}" in
+    sleep)
+      sleep inf
+      ;;
+
+    mb)
+      local requests_awk=requests-mb.awk
+      local dir_out=${RUN}-${HOSTNAME}-${IDENTIFIER:-0}	# TODO
+      local mb_log=$dir_out/${RUN}.log
+      local targets_list=/opt/wlg/targets.txt
+      local targets_json=/opt/wlg/targets.json
+      local requests_json=$dir_out/requests.json
+      local mb=/usr/local/bin/mb
+      local env_out=$dir_out/environment	# for debugging
+      local results_csv=$dir_out/results.csv
+      local graph_dir=gnuplot/${RUN}
+      local graph_sh=gnuplot/$RUN/graph.sh
+      local interval=10				# sample interval for d3js graphs [s]
+      local tls_session_reuse=""
+
+      rm -rf ${dir_out} && mkdir -p ${dir_out}
+      ulimit -n 1048576				# use the same limits as HAProxy pod
+      env > $env_out				# dump out the environment for debugging
+
+      if test -r "${targets_json}" ; then
+        cp ${targets_json} ${requests_json}
+      elif test -r "${targets_list}" ; then
+        cat ${targets_list} | grep -E "${MB_TARGETS:-.}" | awk \
+          -vtls_session_reuse=${MB_TLS_SESSION_REUSE:-false} \
+          -vport=${MB_PORT:-80} \
+          -vmethod=${MB_METHOD:-GET} \
+          -vbody_length=${MB_REQUEST_BODY_SIZE:-128} \
+          -vka_requests=${MB_KA_REQUESTS:-100} -vclients=${MB_CONNS_PER_TARGET:-10} \
+          -vpath=${URL_PATH:-/} -vdelay_min=0 -vdelay_max=${MB_DELAY:-1000} \
+          -f ${requests_awk} > ${requests_json} || \
+          die $? "${RUN} failed: $?: unable to retrieve mb targets list \`targets'"
+      else
+        die 1 "${RUN} failed: 1: no targets provided."
+      fi
+
+      $mb \
+        -d${RUN_TIME:-600} \
+        -r${MB_RAMP_UP:-0} \
+        -i ${requests_json} \
+        -o ${results_csv}.$$ > $mb_log 2>&1 || warn "${RUN} failed: $?"
+      LC_ALL=C sort -t, -n -k1 ${results_csv}.$$ > ${results_csv}
+      rm -f ${results_csv}.$$
+      $graph_sh ${graph_dir} ${results_csv} $dir_out/graphs $interval
+      xz -0 -T0 ${results_csv}
+
+      if test "${SERVER_RESULTS}" ; then
+        local server_results=$(echo ${SERVER_RESULTS:6} | cut -d: -f1)
+        local server_results_dir=$(echo ${SERVER_RESULTS:6} | cut -d: -f2-)
+        case "${SERVER_RESULTS}" in
+          # scp://[user@]server:[path]
+          scp://*)
+            local ssh_opt="-o StrictHostKeyChecking=false -o UserKnownHostsFile=/dev/null -o ConnectTimeout=20 -i $HOME/.ssh/id_rsa"
+            echo "mkdir -p ${server_results_dir}" | ssh $ssh_opt -T ${server_results}
+            scp $ssh_opt -rp ${dir_out} ${SERVER_RESULTS:6}
+            if test $? -ne 0 ; then
+              warn "couldn't scp test results, sleep inf, please debug"
+              sleep inf
+            fi
+          ;;
+
+          # kcp://[namespace/]pod:[path]
+          kcp://*)
+            local namespace=${server_results%%/*}
+            local pod=${server_results##*/}
+            kubectl exec $pod -n $namespace -- mkdir -p $server_results_dir
+            kubectl cp ${dir_out} ${SERVER_RESULTS:6}
+            if test $? -ne 0 ; then
+              warn "couldn't kubectl cp test results, sleep inf, please debug"
+              sleep inf
+            fi
+          ;;
+
+          *) die 1 "Unsupported protocol to copy results."
+          ;;
+        esac
+      fi
+      ;;
+
+    *)
+      die 1 "No harness for RUN=\"$RUN\"."
+      ;;
+  esac
+  timeout_exit_status
+}
+
+main

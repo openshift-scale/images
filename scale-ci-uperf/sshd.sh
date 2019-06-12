@@ -26,6 +26,9 @@ echo "PidFile /tmp/uperf_ssh/sshd.pid" >> /tmp/uperf_ssh/sshd_config
 touch /tmp/sshd.log
 /usr/sbin/sshd -E /tmp/sshd.log -f /tmp/uperf_ssh/sshd_config -D &
 
+echo "Setting net.ipv4.ip_local_port_range to control ports that uperf will use."
+sysctl net.ipv4.ip_local_port_range="20000 20100"
+
 echo "$(date -u) sleep loop starting"
 while :; do
   echo "$(date -u) sshd.log contents:"

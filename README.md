@@ -3,6 +3,8 @@ Container Images for Scale-CI
 
 scale-ci-workload image: [![Docker Repository on Quay](https://quay.io/repository/openshift-scale/scale-ci-workload/status "Docker Repository on Quay")](https://quay.io/repository/openshift-scale/scale-ci-workload)
 
+scale-ci-fio image: [![Docker Repository on Quay](https://quay.io/repository/openshift-scale/scale-ci-fio/status "Docker Repository on Quay")](https://quay.io/repository/openshift-scale/scale-ci-fio)
+
 scale-ci-uperf image: [![Docker Repository on Quay](https://quay.io/repository/openshift-scale/scale-ci-uperf/status "Docker Repository on Quay")](https://quay.io/repository/openshift-scale/scale-ci-uperf)
 
 ## Quay.io Builds

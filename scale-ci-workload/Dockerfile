@@ -1,5 +1,17 @@
 # Dockerfile for scale-ci-workload
+
+# First build scraper/compare tools from source in separate container image
+FROM golang:1.12 as scraperbuilder
+
+WORKDIR $GOPATH/src/github.com/openshift-scale/perf-analyzer
+
+RUN mkdir -p $GOPATH/src/github.com/openshift-scale/perf-analyzer && \
+    git clone https://www.github.com/openshift-scale/perf-analyzer $GOPATH/src/github.com/openshift-scale/perf-analyzer && \
+    go get -d -v ./... && cd $GOPATH/src/github.com/openshift-scale/perf-analyzer && make
+
+# Origin-tests for oc/openshift-tests
 FROM quay.io/openshift/origin-tests:latest as origintests
+
 FROM centos:7
 
 MAINTAINER Red Hat OpenShift Performance and Scale
@@ -9,6 +21,11 @@ ENV KUBECONFIG /root/.kube/config
 # Copy OpenShift CLI and cluster loader into container
 COPY --from=origintests /usr/bin/oc /usr/bin/oc
 COPY --from=origintests /usr/bin/openshift-tests /usr/bin/openshift-tests
+
+# Copy scraper/compare tools into container
+COPY --from=scraperbuilder /go/src/github.com/openshift-scale/perf-analyzer/_output/scraper /usr/bin/scraper
+COPY --from=scraperbuilder /go/src/github.com/openshift-scale/perf-analyzer/_output/compare /usr/bin/compare
+
 COPY config /root/.ssh/config
 
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done) && \

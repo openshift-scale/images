@@ -18,9 +18,10 @@ MAINTAINER Red Hat OpenShift Performance and Scale
 
 ENV KUBECONFIG /root/.kube/config
 
-# Copy OpenShift CLI and cluster loader into container
+# Copy OpenShift CLI, Kubernetes CLI and cluster loader into container
 COPY --from=origintests /usr/bin/oc /usr/bin/oc
 COPY --from=origintests /usr/bin/openshift-tests /usr/bin/openshift-tests
+COPY --from=origintests /usr/bin/kubectl /usr/bin/kubectl
 
 # Copy scraper/compare tools into container
 COPY --from=scraperbuilder /go/src/github.com/openshift-scale/perf-analyzer/_output/scraper /usr/bin/scraper

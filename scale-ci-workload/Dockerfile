@@ -39,7 +39,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/anaconda.target.wants/* && \
     yum --skip-broken clean all && rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
     curl -s https://copr.fedorainfracloud.org/coprs/ndokos/pbench/repo/epel-7/ndokos-pbench-epel-7.repo > /etc/yum.repos.d/copr-pbench.repo && \
-    yum --skip-broken --enablerepo=ndokos-pbench install -y configtools openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq \
+    yum --skip-broken --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y configtools openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq \
     iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts \
     gettext python-requests && yum clean all && \
     sed -i "s/#Port 22/Port 2022/" /etc/ssh/sshd_config && \

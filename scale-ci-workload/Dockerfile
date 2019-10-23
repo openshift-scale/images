@@ -43,6 +43,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     yum --skip-broken --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y configtools openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq \
     iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts \
     gettext python-requests && yum install -y python36-setuptools && easy_install-3.6 pip && pip3 install requests && yum clean all && \
+    easy_install-2.7 pip && pip2.7 install boto3 && yum install -y python-rbd python-flask && \
     sed -i "s/#Port 22/Port 2022/" /etc/ssh/sshd_config && \
     chmod g=u /etc/passwd && \
     chmod 600 /root/.ssh/config && \

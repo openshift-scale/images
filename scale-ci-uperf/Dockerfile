@@ -16,7 +16,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/anaconda.target.wants/* && \
     yum --skip-broken clean all && rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
     curl -o /etc/yum.repos.d/pbench.repo https://copr.fedorainfracloud.org/coprs/ndokos/pbench/repo/epel-7/ndokos-pbench-epel-7.repo && \
-    yum -y install centos-release-scl-rh centos-release-scl && yum --enablerepo=centos-sclo-rh -y install rh-python36 && \
+    yum -y install centos-release-scl-rh centos-release-scl && yum --enablerepo=centos-sclo-rh -y install rh-python36 python36-setuptools which && \
     yum install --assumeyes openssh-clients openssh-server configtools pbench-agent pbench-uperf && \
     yum clean all && \
     adduser default && head -n -1 /etc/passwd > /tmp/passwd && mv /tmp/passwd /etc/passwd && \

@@ -10,7 +10,7 @@ RUN mkdir -p $GOPATH/src/github.com/openshift-scale/perf-analyzer && \
     go get -d -v ./... && cd $GOPATH/src/github.com/openshift-scale/perf-analyzer && make
 
 # Origin-tests for oc/openshift-tests
-FROM quay.io/openshift/origin-tests:latest as origintests
+FROM quay.io/openshift/origin-tests:4.3 as origintests
 
 FROM centos:7
 

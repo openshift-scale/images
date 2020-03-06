@@ -1,7 +1,7 @@
 # Dockerfile for scale-ci-workload
 
 # First build scraper/compare tools from source in separate container image
-FROM golang:1.12 as scraperbuilder
+FROM golang as scraperbuilder
 
 WORKDIR $GOPATH/src/github.com/openshift-scale/perf-analyzer
 

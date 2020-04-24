@@ -50,12 +50,12 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/basic.target.wants/* && \
     rm -f /lib/systemd/system/anaconda.target.wants/* && \
     yum --skip-broken clean all && rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -y install centos-release-scl-rh centos-release-scl openssh-server openssh-clients && yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
+    yum -y install centos-release-scl-rh centos-release-scl && yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
     curl -s https://copr.fedorainfracloud.org/coprs/ndokos/pbench/repo/epel-7/ndokos-pbench-epel-7.repo > /etc/yum.repos.d/copr-pbench.repo && \
     yum --skip-broken --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y configtools openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq \
     iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts \
-    gettext python-requests && yum install -y python36-setuptools python2-pip && yum clean all && \
-    pip2 install boto3 && yum install -y python-rbd python-flask && git clone https://github.com/cloud-bulldozer/snafu /tmp/snafu && pip3 install --upgrade-strategy=only-if-needed -r https://raw.githubusercontent.com/cloud-bulldozer/snafu/master/requirements.txt && \
+    gettext python-requests && yum install -y python36-setuptools && yum clean all && \
+    easy_install-2.7 pip && pip2.7 install boto3 && yum install -y python-rbd python-flask && git clone https://github.com/cloud-bulldozer/snafu /tmp/snafu && pip3 install --upgrade-strategy=only-if-needed -r https://raw.githubusercontent.com/cloud-bulldozer/snafu/master/requirements.txt && \
     sed -i "s/#Port 22/Port 2022/" /etc/ssh/sshd_config && \
     chmod g=u /etc/passwd && \
     chmod 600 /root/.ssh/config && \

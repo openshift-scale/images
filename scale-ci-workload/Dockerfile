@@ -16,8 +16,8 @@ WORKDIR $GOPATH/src/github.com/conprof/conprof
 RUN mkdir -p $GOPATH/src/github.com/conprof/conprof && \
     git clone https://www.github.com/conprof/conprof $GOPATH/src/github.com/conprof/conprof && \
     cd $GOPATH/src/github.com/conprof/conprof && GO111MODULE=on GOPROXY=https://proxy.golang.org go install -v
-
-RUN ls /go/bin/
+# The next command is just to verify conprof binary was built into /go/bin, just a simple check
+# RUN ls /go/bin/
 # Origin-tests for oc/openshift-tests
 FROM quay.io/openshift/origin-tests:4.3 as origintests
 

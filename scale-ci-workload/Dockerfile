@@ -50,7 +50,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/basic.target.wants/* && \
     rm -f /lib/systemd/system/anaconda.target.wants/* && \
     yum --skip-broken clean all && rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -y install centos-release-scl-rh centos-release-scl && yum --enablerepo=centos-release-scl -y install rh-python36 && yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
+    yum -y install centos-release-scl-rh centos-release-scl && yum -y install rh-python36 && yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
     curl -s https://copr.fedorainfracloud.org/coprs/ndokos/pbench/repo/epel-7/ndokos-pbench-epel-7.repo > /etc/yum.repos.d/copr-pbench.repo && \
     yum --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y configtools openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq \
     iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts \

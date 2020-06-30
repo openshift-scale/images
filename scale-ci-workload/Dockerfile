@@ -58,6 +58,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     sed -i "s/#Port 22/Port 2022/" /etc/ssh/sshd_config && \
     chmod g=u /etc/passwd && \
     chmod 600 /root/.ssh/config && \
+    yum install -y podman
     systemctl enable sshd
 
 EXPOSE 2022

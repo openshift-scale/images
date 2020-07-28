@@ -23,14 +23,14 @@ RUN mkdir -p $GOPATH/src/github.com/conprof/conprof && \
 # Origin-tests for oc/openshift-tests
 FROM quay.io/openshift/origin-tests:4.3 as origintests
 
-FROM centos:7
+FROM quay.io/openshift-scale/scale-ci-base:latest
 
 MAINTAINER Red Hat OpenShift Performance and Scale
 
 ENV KUBECONFIG /root/.kube/config
 
 # Copy conprof binary
-COPY --from=scraperbuilder  /go/bin/conprof /usr/bin/conprof
+COPY --from=scraperbuilder /go/bin/conprof /usr/bin/conprof
 
 # Copy OpenShift CLI, Kubernetes CLI and cluster loader into container
 COPY --from=origintests /usr/bin/oc /usr/bin/oc
@@ -43,21 +43,8 @@ COPY --from=scraperbuilder /go/src/github.com/openshift-scale/perf-analyzer/_out
 
 COPY config /root/.ssh/config
 
-RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done) && \
-    rm -f /lib/systemd/system/multi-user.target.wants/* && \
-    rm -f /etc/systemd/system/*.wants/* && \
-    rm -f /lib/systemd/system/local-fs.target.wants/* && \
-    rm -f /lib/systemd/system/sockets.target.wants/*udev* && \
-    rm -f /lib/systemd/system/sockets.target.wants/*initctl* && \
-    rm -f /lib/systemd/system/basic.target.wants/* && \
-    rm -f /lib/systemd/system/anaconda.target.wants/* && \
-    yum --skip-broken clean all && \
-    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -y install centos-release-scl-rh centos-release-scl && \
-    yum -y install rh-python36 && \
-    yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
-    curl -s https://copr.fedorainfracloud.org/coprs/ndokos/pbench/repo/epel-7/ndokos-pbench-epel-7.repo > /etc/yum.repos.d/copr-pbench.repo && \
-    yum --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts gettext python-requests && \
+RUN yum --enablerepo=centos-sclo-rh install -y python3 python3-requests && \
+    yum install -y openssh-clients openssh-server jq iproute sysvinit-tools git ansible which bind-utils ethtool iotop iptables-services wget initscripts gettext python-requests && \
     yum install -y python36-setuptools && \
     yum clean all && \
     easy_install-2.7 pip && \

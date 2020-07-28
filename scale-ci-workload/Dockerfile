@@ -7,7 +7,9 @@ WORKDIR $GOPATH/src/github.com/openshift-scale/perf-analyzer
 
 RUN mkdir -p $GOPATH/src/github.com/openshift-scale/perf-analyzer && \
     git clone https://www.github.com/openshift-scale/perf-analyzer $GOPATH/src/github.com/openshift-scale/perf-analyzer && \
-    go get -d -v ./... && cd $GOPATH/src/github.com/openshift-scale/perf-analyzer && make
+    go get -d -v ./... && \
+    cd $GOPATH/src/github.com/openshift-scale/perf-analyzer && \
+    make
 
 # Build the conprof binary from source in a separate image
 
@@ -15,7 +17,8 @@ WORKDIR $GOPATH/src/github.com/conprof/conprof
 
 RUN mkdir -p $GOPATH/src/github.com/conprof/conprof && \
     git clone https://www.github.com/conprof/conprof $GOPATH/src/github.com/conprof/conprof && \
-    cd $GOPATH/src/github.com/conprof/conprof && GO111MODULE=on GOPROXY=https://proxy.golang.org go install -v
+    cd $GOPATH/src/github.com/conprof/conprof && \
+     GO111MODULE=on GOPROXY=https://proxy.golang.org go install -v
 
 # Origin-tests for oc/openshift-tests
 FROM quay.io/openshift/origin-tests:4.3 as origintests
@@ -48,13 +51,22 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/sockets.target.wants/*initctl* && \
     rm -f /lib/systemd/system/basic.target.wants/* && \
     rm -f /lib/systemd/system/anaconda.target.wants/* && \
-    yum --skip-broken clean all && rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -y install centos-release-scl-rh centos-release-scl && yum -y install rh-python36 && yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
+    yum --skip-broken clean all && \
+    rpm -ivh https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
+    yum -y install centos-release-scl-rh centos-release-scl && \
+    yum -y install rh-python36 && \
+    yum --enablerepo=centos-sclo-rh -y install python3 python3-requests && \
     curl -s https://copr.fedorainfracloud.org/coprs/ndokos/pbench/repo/epel-7/ndokos-pbench-epel-7.repo > /etc/yum.repos.d/copr-pbench.repo && \
-    yum --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq \
-    iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts \
-    gettext python-requests && yum install -y python36-setuptools && yum clean all && \
-    easy_install-2.7 pip && pip2.7 install boto3 && yum install -y python-rbd python-flask && git clone https://github.com/cloud-bulldozer/snafu /tmp/snafu && pip3 install -e /tmp/snafu && pip3 install --upgrade-strategy=only-if-needed -r https://raw.githubusercontent.com/cloud-bulldozer/snafu/master/requirements.txt && pip3 install gspread gspread-formatting oauth2client && \
+    yum --enablerepo=copr:copr.fedorainfracloud.org:ndokos:pbench install -y openssh-clients openssh-server pbench-agent pbench-uperf pbench-fio jq iproute sysvinit-tools pbench-sysstat git ansible which bind-utils blktrace ethtool iotop iptables-services perf wget initscripts gettext python-requests && \
+    yum install -y python36-setuptools && \
+    yum clean all && \
+    easy_install-2.7 pip && \
+    pip2.7 install boto3 && \
+    yum install -y python-rbd python-flask && \
+    git clone https://github.com/cloud-bulldozer/snafu /tmp/snafu && \
+    pip3 install -e /tmp/snafu && \
+    pip3 install --upgrade-strategy=only-if-needed -r https://raw.githubusercontent.com/cloud-bulldozer/snafu/master/requirements.txt && \
+    pip3 install gspread gspread-formatting oauth2client && \
     sed -i "s/#Port 22/Port 2022/" /etc/ssh/sshd_config && \
     chmod g=u /etc/passwd && \
     chmod 600 /root/.ssh/config && \

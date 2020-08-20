@@ -51,8 +51,7 @@ RUN yum --enablerepo=centos-sclo-rh install -y python3 python3-requests && \
     pip2.7 install boto3 && \
     yum install -y python-rbd python-flask && \
     git clone https://github.com/cloud-bulldozer/snafu /tmp/snafu && \
-    pip3 install -e /tmp/snafu && \
-    pip3 install --upgrade-strategy=only-if-needed -r https://raw.githubusercontent.com/cloud-bulldozer/snafu/master/requirements.txt && \
+    pip3 install --upgrade-strategy=only-if-needed -e /tmp/snafu && \
     pip3 install gspread gspread-formatting oauth2client && \
     sed -i "s/#Port 22/Port 2022/" /etc/ssh/sshd_config && \
     chmod g=u /etc/passwd && \

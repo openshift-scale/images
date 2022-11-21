@@ -1,10 +1,10 @@
-FROM quay.io/centos/centos:stream8
+FROM quay.io/centos/centos:stream9
 
 MAINTAINER Red Hat OpenShift Performance and Scale
 
 LABEL RUN="podman run --volume /var/lib/etcd:/var/lib/etcd:Z IMAGE"
 
-RUN yum install epel-release -y && yum install jq fio -y && yum clean all && rm -rf /var/cache/yum
+RUN dnf install jq fio -y && dnf clean all && rm -rf /var/cache/dnf
 
 COPY run.sh /tmp/run.sh
 

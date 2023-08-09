@@ -15,8 +15,8 @@ fsync=$(cat /tmp/fio.out | jq '.jobs[0].sync.lat_ns.percentile["99.000000"]')
 echo "INFO: 99th percentile of fsync is $fsync ns"
 
 # Compare against the recommended value
-if [[ $fsync -ge 20000000 ]]; then
-  echo "WARN: 99th percentile of the fsync is greater than the recommended value which is ${fsync} ns > 20 ms, faster disks are recommended to host etcd for better performance"
+if [[ $fsync -ge 10000000 ]]; then
+  echo "WARN: 99th percentile of the fsync is greater than the recommended value which is ${fsync} ns > 10 ms, faster disks are recommended to host etcd for better performance"
 else
-  echo "INFO: 99th percentile of the fsync is within the recommended threshold: - 20 ms, the disk can be used to host etcd"
+  echo "INFO: 99th percentile of the fsync is within the recommended threshold: - 10 ms, the disk can be used to host etcd"
 fi
